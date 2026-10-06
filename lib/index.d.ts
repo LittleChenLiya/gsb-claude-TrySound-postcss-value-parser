@@ -139,6 +139,18 @@ declare namespace postcssValueParser {
     unit(value: string): Dimension | false;
 
     /**
+     * Normalize standalone absolute length nodes (`in`, `cm`, `px`) to pixels
+     *
+     * Only standalone numeric nodes with `in`, `cm` and `px` units are
+     * normalized. Strings, URLs, relative units and the internals of
+     * `calc()` and custom properties are preserved as-is.
+     *
+     * @param value The CSS value to normalize
+     * @returns The normalized CSS value
+     */
+    normalize(value: string): string;
+
+    /**
      * Serialize a series of nodes into a CSS value
      *
      * @param nodes  The nodes to stringify
