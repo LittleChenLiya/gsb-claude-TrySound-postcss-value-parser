@@ -63,6 +63,14 @@ declare namespace postcssValueParser {
      * The quote type delimiting the string
      */
     quote: '"' | "'";
+
+    /**
+     * When set to `true`, `value` is treated as raw (unescaped) string
+     * content and is CSS-escaped (quotes, newlines and control characters)
+     * when the node is stringified. Nodes without this flag are serialized
+     * verbatim.
+     */
+    encode?: true;
   }
 
   interface UnicodeRangeNode extends BaseNode {
@@ -137,6 +145,20 @@ declare namespace postcssValueParser {
      * @returns An object representing `number` and `unit` part of the dimension or `false` if the decomposing fails
      */
     unit(value: string): Dimension | false;
+
+    /**
+     * Escape a raw string value for inclusion in a CSS string token,
+     * following CSS escaping rules (quotes, newlines and control
+     * characters). Newlines and other control characters become
+     * hexadecimal escapes, with a terminating whitespace added when the
+     * next character is a hex digit or whitespace. JSON escaping is not
+     * used.
+     *
+     * @param value The raw (unescaped) string content
+     * @param quote The quote delimiting the string, `"` (default) or `'`
+     * @returns The escaped content, ready to be wrapped in quotes
+     */
+    encode(value: string, quote?: '"' | "'"): string;
 
     /**
      * Serialize a series of nodes into a CSS value
