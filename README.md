@@ -99,6 +99,10 @@ Node-specific properties:
 - **value**: The text content of the string.
 - **quote**: The quotation mark surrounding the string, either `"` or `'`.
 - **unclosed**: `true` if the string was not closed properly. e.g. `"unclosed string  `.
+- **encode**: Set to `true` to treat `value` as raw (unescaped) content and
+  have `stringify` escape it following CSS rules (quotes, newlines and
+  control characters) when serializing this node. Nodes without this flag
+  are serialized verbatim. See `valueParser.encode`.
 
 ### div
 
@@ -224,6 +228,31 @@ the stringified `1px` node (a `word` node) to parse the number and unit.
 Stringifies a node or array of nodes.
 
 The `custom` function is called for each `node`; return a string to override the default behaviour.
+
+`string` nodes marked with `encode: true` have their `value` escaped with
+`valueParser.encode` before serialization; all other nodes are serialized
+verbatim.
+
+### valueParser.encode(value[, quote])
+
+Escapes a raw string value so it can be embedded in a CSS string token,
+following CSS escaping rules (never JSON escapes): the delimiting `quote`
+(`"` by default, or `'`) and backslashes are escaped with a backslash, and
+newlines and other control characters become hexadecimal escapes. A
+terminating whitespace is added after a hexadecimal escape when the next
+character is a hex digit or whitespace, so re-parsing the output yields the
+same string value.
+
+```js
+const parsed = valueParser(`content: "old";`);
+parsed.walk((node) => {
+  if (node.type === "string") {
+    node.value = 'say "hi"\n2';
+    node.encode = true;
+  }
+});
+parsed.toString(); // 'content: "say \\"hi\\"\\a 2";'
+```
 
 ### valueParser.walk(nodes, callback[, bubble])
 
