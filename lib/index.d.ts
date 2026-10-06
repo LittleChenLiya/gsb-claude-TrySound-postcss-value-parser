@@ -131,12 +131,24 @@ declare namespace postcssValueParser {
 
   interface ValueParser {
     /**
-     * Decompose a CSS dimension into its numeric and unit part
+     * Decompose a CSS dimension into its numeric and unit part
      *
      * @param value The dimension to decompose
      * @returns An object representing `number` and `unit` part of the dimension or `false` if the decomposing fails
      */
     unit(value: string): Dimension | false;
+
+    /**
+     * Normalize standalone absolute length values (`in`, `cm`) to `px`
+     *
+     * Only root-level dimension nodes are converted; strings, relative units
+     * and the contents of functions (such as `calc()` or `url()`) are left
+     * untouched.
+     *
+     * @param value The CSS value to normalize
+     * @returns The serialized CSS value with absolute lengths expressed in `px`
+     */
+    normalizeAbsoluteUnits(value: string): string;
 
     /**
      * Serialize a series of nodes into a CSS value
