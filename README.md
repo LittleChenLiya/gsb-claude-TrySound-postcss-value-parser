@@ -244,6 +244,29 @@ The `callback` is invoked with three arguments: `callback(node, index, nodes)`.
 
 Returns the `valueParser` instance.
 
+### valueParser.diagnose(value)
+
+Parses a CSS value and reports unclosed strings and functions without
+changing the parse result.
+
+Returns an object with:
+
+- `nodes`: the same node tree that `valueParser(value).nodes` exposes.
+- `diagnostics`: a read-only (frozen) array of
+  `{ type, offset }` entries, where `type` is `"unclosed-string"` or
+  `"unclosed-function"` and `offset` is the start offset of the
+  unclosed construct inside the value. Nested unclosed functions are
+  reported innermost first. Escaped quotes (e.g. `"a\"b"`) do not
+  produce false positives.
+
+```js
+valueParser.diagnose("foo(bar(").diagnostics;
+// [
+//   { type: "unclosed-function", offset: 4 },
+//   { type: "unclosed-function", offset: 0 },
+// ]
+```
+
 ### var parsed = valueParser(value)
 
 Returns the parsed node tree.

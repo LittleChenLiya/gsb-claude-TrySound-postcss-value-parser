@@ -112,6 +112,38 @@ declare namespace postcssValueParser {
   }
 
   /**
+   * A read-only diagnostic pointing at an unclosed string or function
+   */
+  interface UnclosedDiagnostic {
+    /**
+     * The kind of unclosed construct
+     */
+    readonly type: "unclosed-string" | "unclosed-function";
+
+    /**
+     * The offset, inclusive, inside the CSS value at which the
+     * unclosed string or function starts
+     */
+    readonly offset: number;
+  }
+
+  /**
+   * The result of parsing a CSS value with diagnostics
+   */
+  interface DiagnoseResult {
+    /**
+     * The same series of parsed nodes as returned by `parse`
+     */
+    nodes: Node[];
+
+    /**
+     * Read-only diagnostics for unclosed strings and functions,
+     * innermost function first
+     */
+    readonly diagnostics: readonly UnclosedDiagnostic[];
+  }
+
+  /**
    * A wrapper around a parsed CSS value that allows for inspecting and walking nodes
    */
   interface ParsedValue {
@@ -155,6 +187,14 @@ declare namespace postcssValueParser {
      * @param bubble   When set to `true`, walking will be done inside-out instead of outside-in
      */
     walk(nodes: Node[], callback: WalkCallback, bubble?: boolean): void;
+
+    /**
+     * Parse a CSS value and report unclosed strings and functions
+     *
+     * @param value The value to parse
+     * @returns The parsed nodes together with read-only diagnostics
+     */
+    diagnose(value: string): DiagnoseResult;
 
     /**
      * Parse a CSS value into a series of nodes to operate on
