@@ -1,0 +1,42 @@
+source: "/* note */ calc(1px * 2), url(/x.png) \"unclosed" 
+
+== projection of every node onto the ORIGINAL source ==
+  valid   comment  [ 0,10) slice="/* note */" 
+  valid   space    [10,11) slice=" " 
+  valid   function [11,24) slice="calc(1px * 2)" 
+  valid   word     [16,19) slice="1px" 
+  valid   space    [19,20) slice=" " 
+  valid   word     [20,21) slice="*" 
+  valid   space    [21,22) slice=" " 
+  valid   word     [22,23) slice="2" 
+  valid   div      [24,26) slice=", " 
+  valid   function [26,37) slice="url(/x.png)" 
+  valid   word     [30,36) slice="/x.png" 
+  valid   space    [37,38) slice=" " 
+  valid   string   [38,47) slice="\"unclosed" 
+
+unclosed function located: "fn( inner( 1 "
+unclosed comment located: "/* never closed"
+
+== modify ONE leaf: calc nodes[0] '1px' -> '2rem' ==
+  valid   comment  [ 0,10) slice="/* note */" 
+  valid   space    [10,11) slice=" " 
+  STALE   function [11,24) slice=null current="calc(2rem * 2)"
+  STALE   word     [16,19) slice=null current="2rem"
+  valid   space    [19,20) slice=" " 
+  valid   word     [20,21) slice="*" 
+  valid   space    [21,22) slice=" " 
+  valid   word     [22,23) slice="2" 
+  valid   div      [24,26) slice=", " 
+  valid   function [26,37) slice="url(/x.png)" 
+  valid   word     [30,36) slice="/x.png" 
+  valid   space    [37,38) slice=" " 
+  valid   string   [38,47) slice="\"unclosed" 
+
+stringify after edit: "/* note */ calc(2rem * 2), url(/x.png) \"unclosed"
+(source untouched):  "/* note */ calc(1px * 2), url(/x.png) \"unclosed"
+
+== option disabled -> legacy interface ==
+legacy.toString(): "/* note */ calc(1px * 2), url(/x.png) \"unclosed"
+
+ALL ACCEPTANCE ASSERTIONS PASSED

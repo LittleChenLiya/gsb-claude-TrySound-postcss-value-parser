@@ -248,6 +248,48 @@ Returns the `valueParser` instance.
 
 Returns the parsed node tree.
 
+### var parsed = valueParser(value, { source: true })
+
+Opt-in **source projection**. When the `source` option is enabled the parsed
+result keeps the original CSS value (`parsed.source`) and exposes two methods
+that project nodes back onto the untouched source text:
+
+- **parsed.range(node)** returns an object describing the node's range in the
+  original value:
+
+  ```js
+  {
+    sourceIndex: 11,      // inclusive start offset
+    sourceEndIndex: 24,   // exclusive end offset
+    valid: true,          // false once the node subtree was modified
+    value: "calc(1px * 2)", // original source slice, or null when stale
+    currentValue: undefined // present only when valid is false
+  }
+  ```
+
+- **parsed.slice(node)** returns the original source slice for the node, or
+  `null` when the range is stale.
+
+The range is computed from the offsets recorded while parsing, so comments,
+nested functions, unclosed strings and unclosed functions are all locatable,
+and the slice never drifts due to `toString()` normalization (e.g. rewritten
+whitespace or delimiters). If a node (or any of its descendants for a function
+node) is modified after parsing, the range is reported as invalid
+(`valid: false`, `value: null`, and the current serialization exposed as
+`currentValue`) instead of returning a slice that no longer matches the node;
+nodes outside the modified subtree stay valid and locatable.
+
+When the option is omitted (or set to `false`) the parser behaves exactly as
+before: no `source` property is stored and calling `range()`/`slice()` throws.
+
+```js
+var parsed = valueParser('/*c*/ calc(1px * 2) "x', { source: true });
+parsed.slice(parsed.nodes[2]); // 'calc(1px * 2)'
+parsed.nodes[2].nodes[0].value = "2rem";
+parsed.range(parsed.nodes[2]); // { valid: false, value: null, currentValue: 'calc(2rem * 2)', ... }
+parsed.slice(parsed.nodes[0]); // '/*c*/' — unaffected nodes remain locatable
+```
+
 ### parsed.nodes
 
 The array of nodes.

@@ -24,7 +24,9 @@
   "scripts": {
     "format": "oxfmt .",
     "lint": "oxlint .",
-    "test": "node --test"
+    "test": "node --test test/index.js test/parse.js test/stringify.js test/unit.js test/sourceProjection.js",
+    "test:source-projection": "node --test test/sourceProjection.js",
+    "demo:source-projection": "node test/fixtures/sourceProjectionDemo.js"
   },
   "devDependencies": {
     "oxfmt": "^0.53.0",

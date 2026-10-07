@@ -127,6 +127,83 @@ declare namespace postcssValueParser {
      * @param bubble   When set to `true`, walking will be done inside-out instead of outside-in
      */
     walk(callback: WalkCallback, bubble?: boolean): this;
+
+    /**
+     * The original CSS value the nodes were parsed from.
+     *
+     * Only present when the value was parsed with `{ source: true }`.
+     */
+    source?: string;
+
+    /**
+     * Project a node back onto the slice of the original source value it
+     * covers. The reported range never drifts when the node tree is
+     * stringified. When the node (or one of its descendants) has been
+     * modified, `valid` is `false`, `value` is `null` and the node's current
+     * serialized form is exposed as `currentValue`.
+     *
+     * Only available when the value was parsed with `{ source: true }`.
+     *
+     * @param node A node reachable from {@link ParsedValue.nodes}
+     */
+    range(node: Node): SourceRange;
+
+    /**
+     * Return the slice of the original source value covered by the node, or
+     * `null` when the node was modified and its recorded range is stale.
+     *
+     * Only available when the value was parsed with `{ source: true }`.
+     *
+     * @param node A node reachable from {@link ParsedValue.nodes}
+     */
+    slice(node: Node): string | null;
+  }
+
+  /**
+   * A node projected onto the original source value
+   */
+  interface SourceRange {
+    /**
+     * The offset, inclusive, inside the original source value at which the
+     * node starts
+     */
+    sourceIndex: number;
+
+    /**
+     * The offset, exclusive, inside the original source value at which the
+     * node ends
+     */
+    sourceEndIndex: number;
+
+    /**
+     * Whether the recorded range still matches the node. `false` once the
+     * node (or one of its descendants) was modified after parsing
+     */
+    valid: boolean;
+
+    /**
+     * The original source slice covered by the node, or `null` when the range
+     * is stale
+     */
+    value: string | null;
+
+    /**
+     * The node's current serialized form, only present when the range is
+     * stale
+     */
+    currentValue?: string;
+  }
+
+  /**
+   * Options accepted by the parser
+   */
+  interface ValueParserOptions {
+    /**
+     * Retain the original source value on the parsed result and enable
+     * {@link ParsedValue.range} and {@link ParsedValue.slice}. Off by
+     * default, in which case the parser behaves exactly as before.
+     */
+    source?: boolean;
   }
 
   interface ValueParser {
@@ -159,16 +236,18 @@ declare namespace postcssValueParser {
     /**
      * Parse a CSS value into a series of nodes to operate on
      *
-     * @param value The value to parse
+     * @param value   The value to parse
+     * @param options Parsing options, e.g. `{ source: true }`
      */
-    new (value: string): ParsedValue;
+    new (value: string, options?: ValueParserOptions): ParsedValue;
 
     /**
      * Parse a CSS value into a series of nodes to operate on
      *
-     * @param value The value to parse
+     * @param value   The value to parse
+     * @param options Parsing options, e.g. `{ source: true }`
      */
-    (value: string): ParsedValue;
+    (value: string, options?: ValueParserOptions): ParsedValue;
   }
 }
 
