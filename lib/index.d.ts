@@ -112,6 +112,43 @@ declare namespace postcssValueParser {
   }
 
   /**
+   * Options accepted by the parser entry point
+   */
+  interface ParseOptions {
+    /**
+     * When `true`, the resulting {@link ParsedValue} exposes `sourceOf()`,
+     * projecting every node back onto its exact slice of the original input
+     */
+    sourceRange?: boolean;
+  }
+
+  /**
+   * The projection of a node onto the original CSS value
+   */
+  interface SourceRange {
+    /**
+     * The offset, inclusive, inside the original CSS value at which the node starts
+     */
+    start: number;
+
+    /**
+     * The offset, exclusive, inside the original CSS value at which the node ends
+     */
+    end: number;
+
+    /**
+     * The exact slice of the original CSS value, or `null` when the range is invalid
+     */
+    text: string | null;
+
+    /**
+     * `true` when the node (or one of its descendants) was modified after
+     * parsing, meaning the captured slice no longer reflects the node
+     */
+    invalid: boolean;
+  }
+
+  /**
    * A wrapper around a parsed CSS value that allows for inspecting and walking nodes
    */
   interface ParsedValue {
@@ -119,6 +156,17 @@ declare namespace postcssValueParser {
      * The series of parsed nodes
      */
     nodes: Node[];
+
+    /**
+     * Project a node back onto the original CSS value. Only available when
+     * the parser was created with `{ sourceRange: true }`.
+     *
+     * Returns `null` for foreign nodes; returns a range with `invalid: true`
+     * and `text: null` when the node was modified after parsing.
+     *
+     * @param node A node produced by this parsed value
+     */
+    sourceOf?(node: Node): SourceRange | null;
 
     /**
      * Walk all parsed nodes, applying a callback
@@ -159,16 +207,18 @@ declare namespace postcssValueParser {
     /**
      * Parse a CSS value into a series of nodes to operate on
      *
-     * @param value The value to parse
+     * @param value   The value to parse
+     * @param options Options bag; pass `{ sourceRange: true }` to enable `sourceOf()`
      */
-    new (value: string): ParsedValue;
+    new (value: string, options?: ParseOptions): ParsedValue;
 
     /**
      * Parse a CSS value into a series of nodes to operate on
      *
-     * @param value The value to parse
+     * @param value   The value to parse
+     * @param options Options bag; pass `{ sourceRange: true }` to enable `sourceOf()`
      */
-    (value: string): ParsedValue;
+    (value: string, options?: ParseOptions): ParsedValue;
   }
 }
 

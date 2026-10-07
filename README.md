@@ -244,9 +244,11 @@ The `callback` is invoked with three arguments: `callback(node, index, nodes)`.
 
 Returns the `valueParser` instance.
 
-### var parsed = valueParser(value)
+### var parsed = valueParser(value[, options])
 
-Returns the parsed node tree.
+Returns the parsed node tree. Pass `{ sourceRange: true }` as `options` to
+enable `parsed.sourceOf()`. Without the option the parser behaves exactly as
+before.
 
 ### parsed.nodes
 
@@ -259,6 +261,33 @@ Stringifies the node tree.
 ### parsed.walk(callback[, bubble])
 
 Walks each node inside `parsed.nodes`. See the documentation for `valueParser.walk()` above.
+
+### parsed.sourceOf(node)
+
+Only available when the parser was created with `{ sourceRange: true }`.
+
+Projects a node back onto the exact slice of the original input it was parsed
+from, using the real `sourceIndex`/end position recorded during parsing
+(comments, nested functions and unclosed strings/functions included). The
+captured ranges are anchored to the original input and never drift, no matter
+how the tree is later stringified.
+
+Returns an object `{ start, end, text, invalid }`:
+
+- `start`/`end`: offsets (inclusive/exclusive) into the original input.
+- `text`: the original slice, or `null` when the range is invalid.
+- `invalid`: `true` once the node or one of its descendants has been modified
+  after parsing; in that case the stale slice is withheld instead of being
+  returned. Ranges of unaffected nodes stay valid.
+
+Returns `null` for nodes that do not belong to this parsed value.
+
+```js
+var parsed = valueParser('1px /*c*/ fn(a)', { sourceRange: true });
+parsed.sourceOf(parsed.nodes[2]); // { start: 4, end: 9, text: '/*c*/', invalid: false }
+parsed.nodes[0].value = '2px';
+parsed.sourceOf(parsed.nodes[0]); // { start: 0, end: 3, text: null, invalid: true }
+```
 
 ## License
 
